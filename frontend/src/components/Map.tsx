@@ -653,7 +653,7 @@ const Map = () => {
                   <option value="kavga">Kavga</option>
                   <option value="saldırı">Saldırı</option>
                   <option value="cinayet">Cinayet</option>
-                  <option value="çete olayı">Çete Olayı</option>
+                  <option value="taciz">Taciz</option>
                   <option value="gasp">Gasp</option>
                   <option value="hırsızlık">Hırsızlık</option>
                   <option value="kundaklama">Kundaklama</option>
