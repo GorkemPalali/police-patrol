@@ -4,7 +4,7 @@ Suç risk tahmini, mekansal risk haritası üretimi ve devriye rotası optimizas
 
 ## Öne Çıkanlar
 
-- Spatio‑temporal risk haritası (Adaptive KDE + grid/hex hücreleri)
+- Spatio‑temporal risk haritası (Adaptive KDE + XGBoost + Feature Engineering)
 - Risk‑aware devriye rota optimizasyonu (tek merkez / çoklu merkez)
 - Gerçek zamanlı risk güncellemesi (WebSocket + Redis cache)
 - OSM tabanlı yol ağı ve otomatik pgRouting topology
@@ -33,6 +33,7 @@ Suç risk tahmini, mekansal risk haritası üretimi ve devriye rotası optimizas
 
 ### Machine Learning
 - scikit-learn
+- XGBoost
 
 ## Kurulum (Docker)
 
