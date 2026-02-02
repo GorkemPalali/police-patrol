@@ -1,0 +1,97 @@
+services:
+  db:
+    platform: linux/arm64
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: policepatrol-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./database/routing_setup.sql:/docker-entrypoint-initdb.d/02-routing-setup.sql
+      - ./database/kucukcekmece_boundary.sql:/docker-entrypoint-initdb.d/03-kucukcekmece-boundary.sql
+      - ./database/triggers/boundary_validation.sql:/docker-entrypoint-initdb.d/04-boundary-validation.sql
+      - ./database/seeds/sample_data.sql:/docker-entrypoint-initdb.d/05-sample-data.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-police} -d ${POSTGRES_DB:-policepatrol}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - policepatrol-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: policepatrol-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - policepatrol-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: policepatrol-backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      ENVIRONMENT: ${ENVIRONMENT}
+      API_V1_PREFIX: ${API_V1_PREFIX}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./scripts:/app/../scripts
+    networks:
+      - policepatrol-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: policepatrol-frontend
+    env_file:
+      - .env
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - policepatrol-network
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  db_data:
+  redis_data:
+
+networks:
+  policepatrol-network:
+    driver: bridge
